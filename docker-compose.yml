@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat-app-backend
+    env_file:
+      - .env
+    ports:
+      - "8000:8000" # Adjust if your app listens on a different port
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ray
+      MONGO_INITDB_ROOT_PASSWORD: ray123
+    networks:
+      - app-network
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/init.js
+
+  redis:
+    image: redis:7
+    container_name: redis
+    command: redis-server --requirepass ray123
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    volumes:
+      - redis_data:/data
+
+networks:
+  app-network:
+
+volumes:
+  mongo_data:
+  redis_data:
