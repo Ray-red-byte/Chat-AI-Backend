@@ -1,14 +1,14 @@
-# Chat App Backend with AI 
+# Chat with AI – Scalable Backend System
 
 ## Project Overview
-This project is a backend service for a chat application. It provides various features to support user authentication, message transport, and conversation management.
+This project delivers a high-performance, production-ready backend for an AI-powered chat application. It is designed for scalability, real-time communication, and robust conversation management, with a strong focus on reliability and developer experience.
 
 ## Features
+- **High-Speed Redis Caching**: Utilizes Redis to optimize database communication and reduce latency.
+- **Graceful Shutdown**: Ensures no messages are lost during shutdown.
 - **User Authentication with OAuth 2.0**: Secure user authentication using OAuth 2.0.
 - **Message Transport with WebSocket**: Real-time message transport using WebSocket.
 - **Conversation CRUD**: Create, Read, Update, and Delete operations for managing conversations.
-- **Redis Optimization**: Utilizes Redis to optimize database communication and reduce latency.
-- **Graceful Shutdown**: Ensures no messages are lost during shutdown.
 
 ## Installation
 1. Clone the repository:
