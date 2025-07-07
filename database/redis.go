@@ -1,7 +1,7 @@
 package database
 
 import (
-	"chat-app/config"
+	"chat-ai-backend/config"
 	"context"
 	"fmt"
 	"log"

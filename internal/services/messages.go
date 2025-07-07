@@ -5,9 +5,9 @@ package services
 import (
 	"time"
 
-	"chat-app/internal/models"
-	"chat-app/internal/repositories"
-	"chat-app/utils"
+	"chat-ai-backend/internal/models"
+	"chat-ai-backend/internal/repositories"
+	"chat-ai-backend/utils"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"

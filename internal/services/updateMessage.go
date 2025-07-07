@@ -1,8 +1,8 @@
 package services
 
 import (
-	"chat-app/internal/repositories"
-	"chat-app/utils"
+	"chat-ai-backend/internal/repositories"
+	"chat-ai-backend/utils"
 )
 
 type UpdateMessageService struct {
