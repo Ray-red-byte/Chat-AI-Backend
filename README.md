@@ -1,5 +1,13 @@
 # Chat with AI – Scalable Backend System
 
+[![Golang](https://img.shields.io/badge/Golang-blue)](https://go.dev)
+[![Redis](https://img.shields.io/badge/Redis-red)](https://redis.io)
+[![MongoDB](https://img.shields.io/badge/MongoDB-green)](https://www.mongodb.com)
+[![Gin](https://img.shields.io/badge/Gin-blue)](https://gin-gonic.com)
+[![Chat App](https://img.shields.io/badge/Chat--App-purple)]()
+
+
+
 ## Project Overview
 This project delivers a high-performance, production-ready backend for an AI-powered chat application. It is designed for scalability, real-time communication, and robust conversation management, with a strong focus on reliability and developer experience.
 
@@ -44,4 +52,5 @@ The API is documented using Swagger. You can view the documentation by navigatin
 Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
+
