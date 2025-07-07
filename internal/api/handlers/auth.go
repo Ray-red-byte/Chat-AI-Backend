@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"chat-app/config"
-	"chat-app/internal/models"
-	"chat-app/internal/services"
-	"chat-app/utils"
+	"chat-ai-backend/config"
+	"chat-ai-backend/internal/models"
+	"chat-ai-backend/internal/services"
+	"chat-ai-backend/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

@@ -1,9 +1,9 @@
 package services
 
 import (
-	"chat-app/internal/models"
-	"chat-app/internal/repositories"
-	"chat-app/utils"
+	"chat-ai-backend/internal/models"
+	"chat-ai-backend/internal/repositories"
+	"chat-ai-backend/utils"
 	"context"
 	"errors"
 	"time"
