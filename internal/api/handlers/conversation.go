@@ -3,8 +3,8 @@
 package handlers
 
 import (
-	"chat-app/internal/services"
-	"chat-app/utils"
+	"chat-ai-backend/internal/services"
+	"chat-ai-backend/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

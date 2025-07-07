@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"chat-app/config"
+	"chat-ai-backend/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )

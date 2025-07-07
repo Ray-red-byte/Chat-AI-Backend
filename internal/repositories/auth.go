@@ -3,7 +3,7 @@
 package repositories
 
 import (
-	"chat-app/internal/models"
+	"chat-ai-backend/internal/models"
 	"context"
 	"errors"
 	"time"

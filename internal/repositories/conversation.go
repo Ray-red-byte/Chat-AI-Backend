@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"chat-app/internal/models"
-	"chat-app/utils"
+	"chat-ai-backend/internal/models"
+	"chat-ai-backend/utils"
 	"context"
 	"errors"
 	"fmt"

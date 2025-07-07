@@ -3,9 +3,9 @@
 package middleware
 
 import (
-	"chat-app/config"
-	"chat-app/internal/services"
-	"chat-app/utils"
+	"chat-ai-backend/config"
+	"chat-ai-backend/internal/services"
+	"chat-ai-backend/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
