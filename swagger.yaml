@@ -1,0 +1,200 @@
+openapi: 3.0.0
+info:
+  title: Chat App API
+  version: 1.0.0
+
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: Login
+      description: User login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret123
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token:
+                    type: string
+                    example: "dGVzdF9yZWZyZXNoX3Rva2Vu"
+
+  /api/v1/auth/register:
+    post:
+      summary: Register
+      description: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: newuser@example.com
+                password:
+                  type: string
+                  format: password
+                  example: strongpassword
+      responses:
+        '200':
+          description: Successful registration
+
+  /api/v1/auth/refresh-token:
+    get:
+      summary: Refresh Token
+      description: Refresh access token using refresh token
+      responses:
+        '200':
+          description: Token refreshed
+
+  /api/v1/auth/logout:
+    post:
+      summary: Logout
+      description: Invalidate current session and tokens
+      responses:
+        '200':
+          description: Successful logout
+
+  /api/v1/messages/ws:
+    get:
+      summary: Connect to WebSocket
+      description: |
+        This endpoint upgrades the HTTP connection to a **WebSocket** connection.
+        Once connected, clients can send/receive real-time messages.
+        You can use **Postman** or **wscat** to test:
+
+        **WebSocket URL**: `ws://localhost:8000/api/v1/messages/ws`
+
+        ### Example Messages
+
+        Client → Server:
+        ```json
+        {
+          "type": "message",
+          "content": "Hello!"
+        }
+        ```
+
+        Server → Client:
+        ```json
+        {
+          "type": "response",
+          "message": "Message received."
+        }
+        ```
+      responses:
+        '101':
+          description: Switching Protocols — WebSocket handshake successful
+        '400':
+          description: Bad request
+
+  /api/v1/messages/{id}:
+    put:
+      summary: Update Message
+      description: Add feedback or update message status, thunb_up 1 or 0
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feedback
+                - thumb_up
+              properties:
+                feedback:
+                  type: string
+                  example: "Helpful response"
+                thumb_up:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Message updated
+
+  /api/v1/conversations:
+    post:
+      summary: Create Conversation
+      description: Start a new chat thread
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "New conversation"
+      responses:
+        '200':
+          description: Conversation created
+
+  /api/v1/conversations/{id}:
+    patch:
+      summary: Update Conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: "Renamed conversation"
+      responses:
+        '200':
+          description: Conversation updated
+
+    delete:
+      summary: Delete Conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conversation deleted

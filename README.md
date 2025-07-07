@@ -1,14 +1,22 @@
-# Chat App Backend with AI 
+# Chat with AI – Scalable Backend System
+
+[![Golang](https://img.shields.io/badge/Golang-blue)](https://go.dev)
+[![Redis](https://img.shields.io/badge/Redis-red)](https://redis.io)
+[![MongoDB](https://img.shields.io/badge/MongoDB-green)](https://www.mongodb.com)
+[![Gin](https://img.shields.io/badge/Gin-blue)](https://gin-gonic.com)
+[![Chat App](https://img.shields.io/badge/Chat--App-purple)]()
+
+
 
 ## Project Overview
-This project is a backend service for a chat application. It provides various features to support user authentication, message transport, and conversation management.
+This project delivers a high-performance, production-ready backend for an AI-powered chat application. It is designed for scalability, real-time communication, and robust conversation management, with a strong focus on reliability and developer experience.
 
 ## Features
+- **High-Speed Redis Caching**: Utilizes Redis to optimize database communication and reduce latency.
+- **Graceful Shutdown**: Ensures no messages are lost during shutdown.
 - **User Authentication with OAuth 2.0**: Secure user authentication using OAuth 2.0.
 - **Message Transport with WebSocket**: Real-time message transport using WebSocket.
 - **Conversation CRUD**: Create, Read, Update, and Delete operations for managing conversations.
-- **Redis Optimization**: Utilizes Redis to optimize database communication and reduce latency.
-- **Graceful Shutdown**: Ensures no messages are lost during shutdown.
 
 ## Installation
 1. Clone the repository:
@@ -44,4 +52,5 @@ The API is documented using Swagger. You can view the documentation by navigatin
 Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
+

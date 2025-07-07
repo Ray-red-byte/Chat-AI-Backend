@@ -1,0 +1,57 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID//backend:backend_$BUILD_ID'
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/chatAI/backend:backend_$BUILD_ID'
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - container
+      - clusters
+      - get-credentials
+      - chatAI-cluster
+      - '--region=us-east1'
+      - '--project=$PROJECT_ID'
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest --secret=backend-env > .env
+        kubectl create secret generic backend-env --from-env-file=.env \
+          --dry-run=client -o yaml > secret.yaml
+        kubectl apply -f secret.yaml
+    entrypoint: bash
+  - name: gcr.io/cloud-builders/kubectl
+    env:
+      - CLOUDSDK_COMPUTE_REGION=us-east1
+      - CLOUDSDK_CONTAINER_CLUSTER=chatAI-cluster
+    args:
+      - apply
+      - '-f'
+      - ./deployment.yaml
+  - name: gcr.io/cloud-builders/kubectl
+    env:
+      - CLOUDSDK_COMPUTE_REGION=us-east1
+      - CLOUDSDK_CONTAINER_CLUSTER=chatAI-cluster
+    args:
+      - set
+      - image
+      - deployment/backend
+      - >-
+        backend-container=us-east1-docker.pkg.dev/$PROJECT_ID/chatAI/backend:backend_$BUILD_ID
+  - name: gcr.io/cloud-builders/kubectl
+    env:
+      - CLOUDSDK_COMPUTE_REGION=us-east1
+      - CLOUDSDK_CONTAINER_CLUSTER=chatAI-cluster
+    args:
+      - apply
+      - '-f'
+      - service.yaml
+options:
+  substitutionOption: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
