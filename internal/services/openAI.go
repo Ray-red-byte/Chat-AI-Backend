@@ -2,7 +2,7 @@ package services
 
 import (
 	"bufio"
-	"chat-app/utils"
+	"chat-ai-backend/utils"
 	"encoding/json"
 	"net/http"
 	"strings"
