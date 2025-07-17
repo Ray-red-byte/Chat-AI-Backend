@@ -37,7 +37,7 @@ func NewMessageUpdateRepository(
 func (r *MessageUpdateRepository) UpdateMessageByMessageID(messageID string, feedback string, thumbUp int) error {
 	// Ensure the collection is initialized
 	if r.MongoMsgCol == nil {
-		utils.Logger.Printf("Error: Message collection is not initialized")
+		utils.Logger.Error("Error: Message collection is not initialized")
 		return errors.New("message collection is not initialized")
 	}
 
@@ -57,18 +57,18 @@ func (r *MessageUpdateRepository) UpdateMessageByMessageID(messageID string, fee
 	// Update in Mongo
 	result, err := r.MongoMsgCol.UpdateOne(ctx, filter, update)
 	if err != nil {
-		utils.Logger.Printf("Failed to update message: %v\n", err)
+		utils.Logger.Error("Failed to update message: %v\n", err)
 		return err
 	}
 
 	// Update in Redis
 	err = r.updateMessageInRedis(messageID, feedback, thumbUp)
 	if err != nil {
-		utils.Logger.Printf("Failed to update message in Redis: %v\n", err)
+		utils.Logger.Error("Failed to update message in Redis: %v\n", err)
 		return err
 	}
 
-	utils.Logger.Printf("Matched %d document(s) and modified %d document(s)", result.MatchedCount, result.ModifiedCount)
+	utils.Logger.Info("Matched %d document(s) and modified %d document(s)", result.MatchedCount, result.ModifiedCount)
 	return nil
 }
 
@@ -80,7 +80,7 @@ func (r *MessageUpdateRepository) updateMessageInRedis(messageID string, feedbac
 	pattern := "messages:*"
 	keys, err := r.RedisChatDB.Keys(ctx, pattern).Result()
 	if err != nil {
-		utils.Logger.Printf("Failed to scan Redis keys: %v", err)
+		utils.Logger.Error("Failed to scan Redis keys: %v", err)
 		return err
 	}
 
@@ -88,7 +88,7 @@ func (r *MessageUpdateRepository) updateMessageInRedis(messageID string, feedbac
 		// Get all messages in the Redis list
 		messagesJSON, err := r.RedisChatDB.LRange(ctx, redisKey, 0, -1).Result()
 		if err != nil {
-			utils.Logger.Printf("Failed to fetch messages from Redis: %v", err)
+			utils.Logger.Error("Failed to fetch messages from Redis: %v", err)
 			continue
 		}
 
@@ -99,7 +99,7 @@ func (r *MessageUpdateRepository) updateMessageInRedis(messageID string, feedbac
 		for _, msgJSON := range messagesJSON {
 			var msg models.Message
 			if err := json.Unmarshal([]byte(msgJSON), &msg); err != nil {
-				utils.Logger.Printf("Error decoding Redis message: %v", err)
+				utils.Logger.Error("Error decoding Redis message: %v", err)
 				continue
 			}
 
@@ -113,7 +113,7 @@ func (r *MessageUpdateRepository) updateMessageInRedis(messageID string, feedbac
 			// Convert message back to JSON and store in the new list
 			updatedMsgJSON, err := json.Marshal(msg)
 			if err != nil {
-				utils.Logger.Printf("Error encoding updated message to JSON: %v", err)
+				utils.Logger.Error("Error encoding updated message to JSON: %v", err)
 				continue
 			}
 			updatedMessages = append(updatedMessages, string(updatedMsgJSON))
@@ -124,7 +124,7 @@ func (r *MessageUpdateRepository) updateMessageInRedis(messageID string, feedbac
 			// Remove old list
 			err = r.RedisChatDB.Del(ctx, redisKey).Err()
 			if err != nil {
-				utils.Logger.Printf("Failed to delete old message list in Redis: %v", err)
+				utils.Logger.Error("Failed to delete old message list in Redis: %v", err)
 				return err
 			}
 
@@ -132,16 +132,16 @@ func (r *MessageUpdateRepository) updateMessageInRedis(messageID string, feedbac
 			for _, msg := range updatedMessages {
 				err = r.RedisChatDB.RPush(ctx, redisKey, msg).Err()
 				if err != nil {
-					utils.Logger.Printf("Failed to push updated message back into Redis: %v", err)
+					utils.Logger.Error("Failed to push updated message back into Redis: %v", err)
 					return err
 				}
 			}
 
-			utils.Logger.Printf("Updated message %s in Redis (key: %s)", messageID, redisKey)
+			utils.Logger.Info("Updated message %s in Redis (key: %s)", messageID, redisKey)
 			return nil
 		}
 	}
 
-	utils.Logger.Printf("Message %s not found in Redis", messageID)
+	utils.Logger.Warn("Message %s not found in Redis", messageID)
 	return nil
 }

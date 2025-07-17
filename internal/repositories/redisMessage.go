@@ -42,16 +42,16 @@ func (r *RedisMessageRepository) LoadMessagesIntoRedis(conversationID string) ([
 	// Check if messages exist in Redis
 	exists, err := r.RedisChatDB.Exists(ctx, redisKey).Result()
 	if err != nil {
-		utils.Logger.Printf("Redis error: %v", err)
+		utils.Logger.Error("Redis error: %v", err)
 		return nil, err
 	}
 
 	if exists > 0 {
-		utils.Logger.Printf("Messages for conversationID %s are already in Redis", conversationID)
+		utils.Logger.Warn("Messages for conversationID %s are already in Redis", conversationID)
 		// Retrieve existing messages from Redis
 		messages, err := r.ReadAllMessagesFromRedis(conversationID) // Correct method call from RedisMessageRepository
 		if err != nil {
-			utils.Logger.Printf("Failed to retrieve messages from Redis: %v", err)
+			utils.Logger.Error("Failed to retrieve messages from Redis: %v", err)
 			return nil, err
 		}
 		return messages, nil
@@ -60,14 +60,14 @@ func (r *RedisMessageRepository) LoadMessagesIntoRedis(conversationID string) ([
 	// Fetch from MongoDB
 	messages, err := r.LoadMessagesFromMongo(conversationID)
 	if err != nil {
-		utils.Logger.Printf("Failed to load messages from MongoDB: %v", err)
+		utils.Logger.Error("Failed to load messages from MongoDB: %v", err)
 		return nil, err
 	}
 
 	// Store messages in Redis
 	err = r.StoreMessagesInRedis(conversationID, messages)
 	if err != nil {
-		utils.Logger.Printf("Failed to store messages in Redis: %v", err)
+		utils.Logger.Error("Failed to store messages in Redis: %v", err)
 		return nil, err
 	}
 
@@ -82,16 +82,16 @@ func (r *RedisMessageRepository) StoreMessagesInRedis(conversationID string, mes
 	for _, msg := range messages {
 		messageJSON, err := json.Marshal(msg)
 		if err != nil {
-			utils.Logger.Printf("Error encoding message to JSON: %v", err)
+			utils.Logger.Error("Error encoding message to JSON: %v", err)
 			continue
 		}
 		if err := r.RedisChatDB.RPush(ctx, redisKey, messageJSON).Err(); err != nil {
-			utils.Logger.Printf("Failed to store message in Redis: %v", err)
+			utils.Logger.Error("Failed to store message in Redis: %v", err)
 			return err
 		}
 	}
 
-	utils.Logger.Printf("Stored %d messages in Redis for conversationID %s", len(messages), conversationID)
+	utils.Logger.Info("Stored %d messages in Redis for conversationID %s", len(messages), conversationID)
 	return nil
 }
 
@@ -103,18 +103,18 @@ func (r *RedisMessageRepository) LoadMessagesFromMongo(conversationID string) ([
 	filter := bson.M{"conversation_id": conversationID}
 	cursor, err := r.MongoMsgCol.Find(ctx, filter)
 	if err != nil {
-		utils.Logger.Printf("Failed to query messages from MongoDB: %v", err)
+		utils.Logger.Error("Failed to query messages from MongoDB: %v", err)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
 	var messages []models.Message
 	if err := cursor.All(ctx, &messages); err != nil {
-		utils.Logger.Printf("Failed to decode MongoDB messages: %v", err)
+		utils.Logger.Error("Failed to decode MongoDB messages: %v", err)
 		return nil, err
 	}
 
-	utils.Logger.Printf("Loaded %d messages from MongoDB for conversationID %s", len(messages), conversationID)
+	utils.Logger.Info("Loaded %d messages from MongoDB for conversationID %s", len(messages), conversationID)
 	return messages, nil
 }
 
@@ -138,16 +138,16 @@ func (r *RedisMessageRepository) StoreOneMessageInRedis(userID, conversationID, 
 
 	messageJSON, err := json.Marshal(msg)
 	if err != nil {
-		utils.Logger.Printf("Error encoding message to JSON: %v", err)
+		utils.Logger.Error("Error encoding message to JSON: %v", err)
 		return err
 	}
 
 	if err := r.RedisChatDB.RPush(ctx, redisKey, messageJSON).Err(); err != nil {
-		utils.Logger.Printf("Failed to store message in Redis: %v", err)
+		utils.Logger.Error("Failed to store message in Redis: %v", err)
 		return err
 	}
 
-	utils.Logger.Printf("Message stored in Redis for conversation %s", conversationID)
+	utils.Logger.Info("Message stored in Redis for conversation %s", conversationID)
 	return nil
 }
 
@@ -158,7 +158,7 @@ func (r *RedisMessageRepository) ReadAllMessagesFromRedis(conversationID string)
 
 	messagesJSON, err := r.RedisChatDB.LRange(ctx, redisKey, 0, -1).Result()
 	if err != nil {
-		utils.Logger.Printf("Failed to get messages from Redis: %v", err)
+		utils.Logger.Error("Failed to get messages from Redis: %v", err)
 		return nil, err
 	}
 
@@ -166,13 +166,13 @@ func (r *RedisMessageRepository) ReadAllMessagesFromRedis(conversationID string)
 	for _, msg := range messagesJSON {
 		var message models.Message
 		if err := json.Unmarshal([]byte(msg), &message); err != nil {
-			utils.Logger.Printf("Error decoding Redis message: %v", err)
+			utils.Logger.Error("Error decoding Redis message: %v", err)
 			continue
 		}
 		messages = append(messages, message)
 	}
 
-	utils.Logger.Printf("Loaded %d messages from Redis for conversationID %s", len(messages), conversationID)
+	utils.Logger.Info("Loaded %d messages from Redis for conversationID %s", len(messages), conversationID)
 	return messages, nil
 }
 
@@ -184,12 +184,12 @@ func (r *RedisMessageRepository) MoveAllConversationsToMongo() error {
 	// Find all Redis keys matching pattern
 	keys, err := r.RedisChatDB.Keys(ctx, "messages:*").Result()
 	if err != nil {
-		utils.Logger.Printf("Failed to list Redis keys: %v", err)
+		utils.Logger.Error("Failed to list Redis keys: %v", err)
 		return err
 	}
 
 	if len(keys) == 0 {
-		utils.Logger.Println("No conversations found in Redis")
+		utils.Logger.Warn("No conversations found in Redis")
 		return nil
 	}
 
@@ -212,7 +212,7 @@ func (r *RedisMessageRepository) MoveAllConversationsToMongo() error {
 		}
 	}
 
-	utils.Logger.Printf("Migrated %d conversations from Redis to MongoDB", len(keys))
+	utils.Logger.Info("Migrated %d conversations from Redis to MongoDB", len(keys))
 	return nil
 }
 
@@ -226,7 +226,7 @@ func (r *RedisMessageRepository) MoveConvToMongo(conversationID string) error {
 	// Retrieve messages from Redis
 	messagesJSON, err := r.RedisChatDB.LRange(ctx, redisKey, 0, -1).Result()
 	if err != nil {
-		utils.Logger.Printf("Failed to fetch messages from Redis: %v", err)
+		utils.Logger.Error("Failed to fetch messages from Redis: %v", err)
 		return err
 	}
 
@@ -235,7 +235,7 @@ func (r *RedisMessageRepository) MoveConvToMongo(conversationID string) error {
 	for _, msg := range messagesJSON {
 		var message models.Message
 		if err := json.Unmarshal([]byte(msg), &message); err != nil {
-			utils.Logger.Printf("Error decoding Redis message: %v", err)
+			utils.Logger.Error("Error decoding Redis message: %v", err)
 			continue
 		}
 		messages = append(messages, message)
@@ -243,7 +243,7 @@ func (r *RedisMessageRepository) MoveConvToMongo(conversationID string) error {
 
 	// Ensure messages exist before saving
 	if len(messages) == 0 {
-		utils.Logger.Printf("No messages found in Redis for conversationID %s. Skipping migration.", conversationID)
+		utils.Logger.Warn("No messages found in Redis for conversationID %s. Skipping migration.", conversationID)
 		return nil
 	}
 
@@ -267,7 +267,7 @@ func (r *RedisMessageRepository) MoveConvToMongo(conversationID string) error {
 		// Perform upsert (update if exists, insert if not)
 		_, err := r.MongoMsgCol.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
 		if err != nil {
-			utils.Logger.Printf("Failed to upsert message to MongoDB: %v", err)
+			utils.Logger.Error("Failed to upsert message to MongoDB: %v", err)
 			return err
 		}
 	}
@@ -275,10 +275,10 @@ func (r *RedisMessageRepository) MoveConvToMongo(conversationID string) error {
 	// Delete from Redis after successful migration
 	_, err = r.RedisChatDB.Del(ctx, redisKey).Result()
 	if err != nil {
-		utils.Logger.Printf("Failed to delete Redis conversation: %v", err)
+		utils.Logger.Error("Failed to delete Redis conversation: %v", err)
 		return err
 	}
 
-	utils.Logger.Printf("Moved conversation %s to MongoDB", conversationID)
+	utils.Logger.Info("Moved conversation %s to MongoDB", conversationID)
 	return nil
 }

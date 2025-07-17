@@ -43,7 +43,7 @@ func (r *ConversationRepository) SaveConversation(convo models.Conversation) (st
 
 	res, err := r.MongoConvoCol.InsertOne(ctx, convo)
 	if err != nil {
-		utils.Logger.Printf("Failed to save conversation: %v", err)
+		utils.Logger.Error("Failed to save conversation: %v", err)
 		return "", err
 	}
 
@@ -52,7 +52,7 @@ func (r *ConversationRepository) SaveConversation(convo models.Conversation) (st
 		return "", errors.New("failed to convert inserted ID to ObjectID")
 	}
 	convoID := objectID.Hex()
-	utils.Logger.Printf("Conversation created: %s", convoID)
+	utils.Logger.Info("Conversation created: %s", convoID)
 	return convoID, nil
 }
 
@@ -69,10 +69,10 @@ func (r *ConversationRepository) DeleteConversation(convoID string) error {
 	redisKey := fmt.Sprintf("messages:%s", convoID)
 	if exists, _ := r.RedisClient.Exists(ctx, redisKey).Result(); exists > 0 {
 		if _, err := r.RedisClient.Del(ctx, redisKey).Result(); err != nil {
-			utils.Logger.Printf("Failed to delete Redis key: %v", err)
+			utils.Logger.Error("Failed to delete Redis key: %v", err)
 			return err
 		}
-		utils.Logger.Printf("Deleted conversation %s from Redis", convoID)
+		utils.Logger.Warn("Deleted conversation %s from Redis", convoID)
 	}
 
 	// Step 2: Delete from MongoDB
@@ -82,16 +82,16 @@ func (r *ConversationRepository) DeleteConversation(convoID string) error {
 	}
 
 	if _, err := r.MongoConvoCol.DeleteOne(ctx, bson.M{"_id": objectID}); err != nil {
-		utils.Logger.Printf("Failed to delete conversation: %v", err)
+		utils.Logger.Error("Failed to delete conversation: %v", err)
 		return err
 	}
 
 	if _, err := r.MongoMsgCol.DeleteMany(ctx, bson.M{"conversation_id": convoID}); err != nil {
-		utils.Logger.Printf("Failed to delete messages: %v", err)
+		utils.Logger.Error("Failed to delete messages: %v", err)
 		return err
 	}
 
-	utils.Logger.Printf("Conversation %s fully deleted", convoID)
+	utils.Logger.Warn("Conversation %s fully deleted", convoID)
 	return nil
 }
 
@@ -115,10 +115,10 @@ func (r *ConversationRepository) UpdateConversationTitle(convoID, title string) 
 		bson.M{"$set": bson.M{"title": title}},
 	)
 	if err != nil {
-		utils.Logger.Printf("Failed to update title for %s: %v", convoID, err)
+		utils.Logger.Error("Failed to update title for %s: %v", convoID, err)
 		return err
 	}
 
-	utils.Logger.Printf("Updated title for conversation %s to %s", convoID, title)
+	utils.Logger.Info("Updated title for conversation %s to %s", convoID, title)
 	return nil
 }
