@@ -1,28 +1,32 @@
-FROM --platform=linux/amd64 golang:1.22 AS builder
-
-ENV CGO_ENABLED=1 \
-    GOOS=linux \
-    GOARCH=amd64
+# ---------- Stage 1: Builder ----------
+FROM golang:1.22 AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y gcc g++ librdkafka-dev
-
+# 預先加載模組依賴（加快 build）
 COPY go.mod go.sum ./
 RUN go mod download
 
+# 複製所有原始碼
 COPY . .
 
-RUN go build -o main ./cmd/server/main.go
+# 編譯 main 程式
+RUN go build -o app ./cmd/server
 
+# ---------- Stage 2: Runtime ----------
+FROM debian:bookworm-slim
 
-FROM --platform=linux/amd64 debian:bookworm-slim
+# 安裝 Kafka 所需的 librdkafka 執行時函式庫與憑證
+RUN apt-get update && apt-get install -y \
+    librdkafka1 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y librdkafka1 ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-WORKDIR /root/
-COPY --from=builder /app/main .
-COPY --from=builder /app/config ./config
+# 從 builder 拷貝編譯完成的程式
+COPY --from=builder /app/app .
 
-EXPOSE 8000
-CMD ["./main"]
+# 執行
+CMD ["./app"]
+    
