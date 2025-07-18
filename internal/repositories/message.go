@@ -34,14 +34,14 @@ func (r *MessageRepository) GetConversationByID(conversationID string) (*models.
 	// Convert string to ObjectId
 	objectID, err := primitive.ObjectIDFromHex(conversationID)
 	if err != nil {
-		utils.Logger.Printf("Invalid conversationID format: %s\n", conversationID)
+		utils.Logger.Error("Invalid conversationID format: %s\n", conversationID)
 		return nil, err
 	}
 
 	var conversation models.Conversation
 	err = r.MongoConvoCol.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&conversation)
 	if err != nil {
-		utils.Logger.Printf("Failed to find conversation by ID %s: %v\n", conversationID, err)
+		utils.Logger.Error("Failed to find conversation by ID %s: %v\n", conversationID, err)
 		return nil, err
 	}
 	return &conversation, nil
@@ -66,7 +66,7 @@ func (r *MessageRepository) SaveMessage(message models.Message) error {
 
 	// Check if the MessageCollection is initialized
 	if r.MongoMsgCol == nil {
-		utils.Logger.Printf("Error: Message collection is not initialized")
+		utils.Logger.Error("Error: Message collection is not initialized")
 		return errors.New("message collection is not initialized")
 	}
 
@@ -75,10 +75,10 @@ func (r *MessageRepository) SaveMessage(message models.Message) error {
 
 	_, err := r.MongoMsgCol.InsertOne(ctx, message)
 	if err != nil {
-		utils.Logger.Printf("Failed to save message: %v\n", err)
+		utils.Logger.Error("Failed to save message: %v\n", err)
 		return err
 	}
 
-	utils.Logger.Printf("Message saved: %+v", message)
+	utils.Logger.Info("Message saved: %+v", message)
 	return nil
 }

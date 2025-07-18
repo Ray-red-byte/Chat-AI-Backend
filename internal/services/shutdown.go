@@ -18,8 +18,8 @@ func NewShutdownService(repo *repositories.RedisMessageRepository) *ShutdownServ
 // GracefulShutdown moves all Redis conversations to MongoDB before shutdown
 func (s *ShutdownService) GracefulShutdown() {
 	if err := s.Repo.MoveAllConversationsToMongo(); err != nil {
-		utils.Logger.Printf("Error flushing Redis to MongoDB: %v", err)
+		utils.Logger.Error("Error flushing Redis to MongoDB: %v", err)
 	} else {
-		utils.Logger.Println("All Redis conversations successfully migrated to MongoDB.")
+		utils.Logger.Info("All Redis conversations successfully migrated to MongoDB.")
 	}
 }

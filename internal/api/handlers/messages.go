@@ -44,11 +44,11 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 	// Upgrade to WebSocket
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		utils.Logger.Printf("WebSocket upgrade failed: %v\n", err)
+		utils.Logger.Error("WebSocket upgrade failed: %v\n", err)
 		return
 	}
 	defer conn.Close()
-	utils.Logger.Printf("User %s connected", userID)
+	utils.Logger.Info("User %s connected", userID)
 
 	// Create or fetch the active conversation
 	conversationID := c.Query("conversationID")
@@ -57,26 +57,26 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 
 		conversationID, err = h.ConversationService.CreateOrFetchConversation(userID, "New Conversation")
 		if err != nil {
-			utils.Logger.Printf("Failed to create conversation for user %s: %v\n", userID, err)
+			utils.Logger.Error("Failed to create conversation for user %s: %v\n", userID, err)
 			c.JSON(500, gin.H{"error": "Failed to create conversation"})
 			return
 		}
-		utils.Logger.Printf("New conversation %s created for user %s", conversationID, userID)
+		utils.Logger.Info("New conversation %s created for user %s", conversationID, userID)
 	} else {
 		// Validate if the provided conversationID belongs to the user
 		valid, err := h.MessageService.ValidateConversationOwnership(userID, conversationID)
 		if err != nil || !valid {
-			utils.Logger.Printf("Invalid or unauthorized conversationID: %s for user %s", conversationID, userID)
+			utils.Logger.Error("Invalid or unauthorized conversationID: %s for user %s", conversationID, userID)
 			c.JSON(403, gin.H{"error": "Unauthorized access to conversation"})
 			return
 		}
-		utils.Logger.Printf("Existing conversation %s accessed by user %s", conversationID, userID)
+		utils.Logger.Warn("Existing conversation %s accessed by user %s", conversationID, userID)
 	}
 
 	// Load into Redis from MongoDB
 	messages, err := h.RedisMessageService.LoadMsgIntoRedis(conversationID)
 	if err != nil {
-		utils.Logger.Printf("Failed to load messages into Redis: %v\n", err)
+		utils.Logger.Error("Failed to load messages into Redis: %v\n", err)
 		c.JSON(500, gin.H{"error": "Failed to load messages"})
 		return
 	}
@@ -85,13 +85,13 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 	for _, msg := range messages {
 		msgBytes, err := json.Marshal(msg)
 		if err != nil {
-			utils.Logger.Printf("Error marshalling message: %v\n", err)
+			utils.Logger.Error("Error marshalling message: %v\n", err)
 			continue
 		}
 
 		err = conn.WriteMessage(websocket.TextMessage, msgBytes)
 		if err != nil {
-			utils.Logger.Printf("Error sending message to client: %v\n", err)
+			utils.Logger.Error("Error sending message to client: %v\n", err)
 			return
 		}
 	}
@@ -103,7 +103,7 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 	defer func() {
 		err := h.RedisMessageService.MoveConversationToMongo(conversationID)
 		if err != nil {
-			utils.Logger.Printf("Failed to move conversation %s to MongoDB: %v", conversationID, err)
+			utils.Logger.Error("Failed to move conversation %s to MongoDB: %v", conversationID, err)
 		}
 	}()
 
@@ -111,11 +111,11 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 		// Read message from client
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			utils.Logger.Printf("Error reading message: %v\n", err)
+			utils.Logger.Error("Error reading message: %v\n", err)
 			break
 		}
 
-		utils.Logger.Printf("Message from user %s: %s", userID, message)
+		utils.Logger.Info("Message from user %s: %s", userID, message)
 
 		// Process the message and stream the response
 		responseChan := make(chan string)
@@ -126,11 +126,12 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 		for response := range responseChan {
 			err = conn.WriteMessage(websocket.TextMessage, []byte(response))
 			if err != nil {
-				utils.Logger.Printf("Error writing message: %v\n", err)
+				utils.Logger.Error("Error writing message: %v\n", err)
 				break
 			}
 			aiResponse += response
 		}
+		utils.Logger.Info("AI response for user %s: %s", userID, aiResponse)
 
 		// Store the message in Redis
 		h.RedisMessageService.StoreOneMsgInRedis(userID, conversationID, string(message), aiResponse)

@@ -1,43 +1,32 @@
-FROM golang:1.23 as builder
+# ---------- Stage 1: Builder ----------
+FROM golang:1.22 AS builder
 
-# Set environment variables for Go
-ENV GO111MODULE=on \
-    CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64
-
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy go.mod and go.sum files
+# 預先加載模組依賴（加快 build）
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
-# Copy the rest of the application code
+# 複製所有原始碼
 COPY . .
 
-# Build the Go application
-RUN go build -o main ./cmd/server/main.go
+# 編譯 main 程式
+RUN go build -o app ./cmd/server
 
-# Use a minimal base image for running the application
-FROM alpine:latest
+# ---------- Stage 2: Runtime ----------
+FROM debian:bookworm-slim
 
-# Set up certificates (if needed)
-RUN apk add --no-cache ca-certificates
+# 安裝 Kafka 所需的 librdkafka 執行時函式庫與憑證
+RUN apt-get update && apt-get install -y \
+    librdkafka1 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
-WORKDIR /root/
+WORKDIR /app
 
-# Copy the compiled Go binary from the builder stage
-COPY --from=builder /app/main .
+# 從 builder 拷貝編譯完成的程式
+COPY --from=builder /app/app .
 
-# Copy other required files (e.g., configuration files, .env)
-COPY --from=builder /app/config ./config
-
-# Expose the port the app runs on
-EXPOSE 8000
-
-# Run the binary
-CMD ["./main"]
+# 執行
+CMD ["./app"]
+    

@@ -29,7 +29,7 @@ func (h *MessageUpdateHandler) UpdateMessage(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		utils.Logger.Printf("Invalid input: %v\n", err)
+		utils.Logger.Error("Invalid input: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}

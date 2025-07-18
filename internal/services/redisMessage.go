@@ -20,7 +20,7 @@ func NewRedisMessageService(repo *repositories.RedisMessageRepository) *RedisMes
 func (s *RedisMessageService) LoadMsgIntoRedis(conversationID string) ([]models.Message, error) {
 	messages, err := s.Repo.LoadMessagesIntoRedis(conversationID)
 	if err != nil {
-		utils.Logger.Printf("Error loading messages into Redis: %v", err)
+		utils.Logger.Error("Error loading messages into Redis: %v", err)
 		return nil, err
 	}
 	return messages, nil
@@ -35,7 +35,7 @@ func (s *RedisMessageService) StoreOneMsgInRedis(userID, conversationID, questio
 func (s *RedisMessageService) MoveConversationToMongo(conversationID string) error {
 	err := s.Repo.MoveConvToMongo(conversationID)
 	if err != nil {
-		utils.Logger.Printf("Error moving conversation %s to MongoDB: %v", conversationID, err)
+		utils.Logger.Error("Error moving conversation %s to MongoDB: %v", conversationID, err)
 		return err
 	}
 	return nil
@@ -47,8 +47,8 @@ func (s *RedisMessageService) ScheduleRedisToMongoMigration(conversationID strin
 		time.Sleep(30 * time.Minute) // Wait for 30 minutes
 		err := s.MoveConversationToMongo(conversationID)
 		if err != nil {
-			utils.Logger.Printf("Failed to move conversation %s: %v", conversationID, err)
+			utils.Logger.Error("Failed to move conversation %s: %v", conversationID, err)
 		}
-		utils.Logger.Printf("Scheduled migration of conversation %s to MongoDB", conversationID)
+		utils.Logger.Info("Scheduled migration of conversation %s to MongoDB", conversationID)
 	}()
 }
