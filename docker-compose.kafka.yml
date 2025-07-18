@@ -30,7 +30,7 @@ services:
     networks:
       - kafka-net
 
-  # ========== 第三步：啟動 Kafka UI （等待 broker 健康）
+  # Kafka UI
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui

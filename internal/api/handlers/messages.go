@@ -131,6 +131,7 @@ func (h *MessageHandler) Messages(c *gin.Context) {
 			}
 			aiResponse += response
 		}
+		utils.Logger.Info("AI response for user %s: %s", userID, aiResponse)
 
 		// Store the message in Redis
 		h.RedisMessageService.StoreOneMsgInRedis(userID, conversationID, string(message), aiResponse)
