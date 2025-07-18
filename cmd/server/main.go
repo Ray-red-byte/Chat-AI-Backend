@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	utils.Logger.Printf("Starting server initialization...")
+	utils.Logger.Info("Starting server initialization...")
 
 	// Load configuration
 	config.LoadConfig()
@@ -47,7 +47,7 @@ func main() {
 	// Run server in a goroutine
 	go func() {
 		if err := r.Run(":8000"); err != nil {
-			utils.Logger.Fatalf("Failed to run server: %v", err)
+			utils.Logger.Error("Failed to run server: %v", err)
 		}
 	}()
 
@@ -56,7 +56,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit // wait for shutdown signal
-	utils.Logger.Println("Shutdown signal received. Starting graceful shutdown...")
+	utils.Logger.Info("Shutdown signal received. Starting graceful shutdown...")
 
 	// Perform graceful shutdown tasks
 	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -69,5 +69,5 @@ func main() {
 	database.CloseMongo()
 	database.CloseRedis()
 
-	utils.Logger.Println("Server shutdown complete.")
+	utils.Logger.Info("Server shutdown complete.")
 }

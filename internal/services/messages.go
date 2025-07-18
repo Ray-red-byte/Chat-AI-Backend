@@ -26,7 +26,7 @@ func NewMessageService(repo *repositories.MessageRepository) *MessageService {
 func (s *MessageService) ValidateConversationOwnership(userID, conversationID string) (bool, error) {
 	conversation, err := s.Repo.GetConversationByID(conversationID)
 	if err != nil {
-		utils.Logger.Printf("Error retrieving conversation: %v\n", err)
+		utils.Logger.Error("Error retrieving conversation: %v\n", err)
 		return false, err
 	}
 	return conversation.UserID == userID, nil
@@ -36,7 +36,7 @@ func (s *MessageService) ValidateConversationOwnership(userID, conversationID st
 func (s *MessageService) WriteClientMessage(conn *websocket.Conn, messageType int, message string) error {
 	err := conn.WriteMessage(messageType, []byte(message))
 	if err != nil {
-		utils.Logger.Printf("Error writing WebSocket message: %v\n", err)
+		utils.Logger.Error("Error writing WebSocket message: %v\n", err)
 		return err
 	}
 	return nil
@@ -58,8 +58,8 @@ func (s *MessageService) StoreMessage(userID, conversationID, question, answer s
 	}
 	err := s.Repo.SaveMessage(msg)
 	if err != nil {
-		utils.Logger.Printf("Failed to save message: %v\n", err)
+		utils.Logger.Error("Failed to save message: %v\n", err)
 	} else {
-		utils.Logger.Printf("Message saved successfully for conversation %s", conversationID)
+		utils.Logger.Info("Message saved successfully for conversation %s", conversationID)
 	}
 }

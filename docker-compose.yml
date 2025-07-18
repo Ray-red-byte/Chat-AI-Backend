@@ -14,7 +14,7 @@ services:
       - mongo
       - redis
     networks:
-      - app-network
+      - kafka-net
     restart: unless-stopped
 
   mongo:
@@ -26,7 +26,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ray
       MONGO_INITDB_ROOT_PASSWORD: ray123
     networks:
-      - app-network
+      - kafka-net
     volumes:
       - mongo_data:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/init.js
@@ -38,12 +38,13 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - app-network
+      - kafka-net
     volumes:
       - redis_data:/data
 
 networks:
-  app-network:
+  kafka-net:
+    driver: bridge
 
 volumes:
   mongo_data:

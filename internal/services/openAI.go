@@ -37,14 +37,14 @@ func (s *OpenAIService) GenerateAIResponse(message, conversationID string, respo
 
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		utils.Logger.Printf("Failed to marshal payload: %v\n", err)
+		utils.Logger.Error("Failed to marshal payload: %v\n", err)
 		responseChan <- "Error encoding request"
 		return
 	}
 
 	req, err := http.NewRequest("POST", s.OpenAIUrl, strings.NewReader(string(jsonData)))
 	if err != nil {
-		utils.Logger.Printf("Failed to create request: %v\n", err)
+		utils.Logger.Error("Failed to create request: %v\n", err)
 		responseChan <- "Error creating request"
 		return
 	}
@@ -57,14 +57,14 @@ func (s *OpenAIService) GenerateAIResponse(message, conversationID string, respo
 
 	resp, err := s.Client.Do(req)
 	if err != nil {
-		utils.Logger.Printf("HTTP request failed: %v\n", err)
+		utils.Logger.Error("HTTP request failed: %v\n", err)
 		responseChan <- "Error connecting to LLM service"
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		utils.Logger.Printf("Non-OK HTTP status: %v\n", resp.Status)
+		utils.Logger.Info("Non-OK HTTP status: %v\n", resp.Status)
 		responseChan <- "Error: LLM service returned an error"
 		return
 	}
@@ -90,7 +90,7 @@ func (s *OpenAIService) GenerateAIResponse(message, conversationID string, respo
 			} `json:"choices"`
 		}
 		if err := json.Unmarshal([]byte(line), &chunk); err != nil {
-			utils.Logger.Printf("Failed to unmarshal chunk: %v\n", err)
+			utils.Logger.Error("Failed to unmarshal chunk: %v\n", err)
 			continue
 		}
 
@@ -103,6 +103,6 @@ func (s *OpenAIService) GenerateAIResponse(message, conversationID string, respo
 	}
 
 	if err := scanner.Err(); err != nil {
-		utils.Logger.Printf("Error reading response body: %v\n", err)
+		utils.Logger.Error("Error reading response body: %v\n", err)
 	}
 }

@@ -16,7 +16,7 @@ func NewUpdateMessageService(repo *repositories.MessageUpdateRepository) *Update
 func (s *UpdateMessageService) UpdateMessage(messageID, feedback string, thumbUp int) error {
 	err := s.Repo.UpdateMessageByMessageID(messageID, feedback, thumbUp)
 	if err != nil {
-		utils.Logger.Printf("Service failed to update message: %v\n", err)
+		utils.Logger.Error("Service failed to update message: %v\n", err)
 		return err
 	}
 	return nil
